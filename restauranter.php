@@ -63,7 +63,7 @@ if (isset($restauranter)) {
       'description'   => 'Holds our products and product specific data',
       'public'        => true,
       'menu_position' => 5,
-      'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'comments' ),
+      'supports'      => array( 'none' ),
       'has_archive'   => true,
       'menu_icon' => 'dashicons-list-view',
       'show_in_nav_menu' => true,
@@ -145,6 +145,27 @@ if (isset($restauranter)) {
   }
   add_action( 'init', 'diet_requirements', 0 );
 
+  function custom_edit_meals_columns( $mealcolumn, $post_id ) {
+    switch ( $mealcolumn ) {
+      case "_mealname":
+        $mealname = get_post_meta($post_id, '_mealname', true);
+        echo $mealname;
+      break;
+
+      case "_mealdescription":
+        $mealdescription = get_post_meta($post_id, '_mealdescription', true);
+        echo $mealdescription;
+      break;
+
+      case "_mealprice":
+        $mealprice = get_post_meta($post_id, '_mealprice', true);
+        echo $mealprice;
+      break;
+
+    }
+  }
+  add_action( "manage_posts_custom_column", "custom_edit_meals_columns", 10, 2 );
+
   function custom_edit_reservations_columns( $column, $post_id ) {
     switch ( $column ) {
       case "_firstname":
@@ -186,14 +207,15 @@ if (isset($restauranter)) {
   }
   add_action( "manage_posts_custom_column", "custom_edit_reservations_columns", 10, 2 );
 
-  function restauranter_add_meta_box() {
+ 
+  function restauranter_add_reservation_meta() {
 
 	  $screens = array( 'reservations' );
 
 	  foreach ( $screens as $screen ) {
 
 		  add_meta_box(
-			  'restauranter_firstname',
+			  'restauranter_reservation',
 			  __( 'Reservation Details', 'restauranter' ),
 			  'restauranter_reservation_details',
 			  $screen, 
@@ -202,8 +224,9 @@ if (isset($restauranter)) {
 		  );
 	  }
   }
-  add_action( 'add_meta_boxes', 'restauranter_add_meta_box' );
+  add_action( 'add_meta_boxes', 'restauranter_add_reservation_meta' );
  
+
   function restauranter_reservation_details() {
 	  global $post;
 	
@@ -235,6 +258,7 @@ if (isset($restauranter)) {
     echo '<input type="submit" name="_time" value="" class="widefat submit" />';
 
   }
+
   function restauranter_save_reservations_meta($post_id, $post) {
 	
 	  if ( !wp_verify_nonce( $_POST['reservationmeta_noncename'], plugin_basename(__FILE__) )) {
@@ -269,23 +293,100 @@ if (isset($restauranter)) {
 
   add_action('save_post', 'restauranter_save_reservations_meta', 1, 2); // save the custom fields
 
+  function add_new_reservations_columns($reservations_columns) {
+      $new_columns['cb'] = '<input type="checkbox" />';
+      $new_columns['_firstname'] = __('First Name', '_firstname');
+      $new_columns['_lastname'] = __('Last Name', '_lastname');
+      $new_columns['_phone'] = __('Phone', '_phone');
+      $new_columns['_email'] = __('Email', '_email');
+      $new_columns['_guests'] = __('Guests', '_guests');
+      $new_columns['_date'] = __('Date', '_date');
+      $new_columns['_time'] = __('Time', '_time');
+      return $new_columns;
+  }
 
-function add_new_reservations_columns($reservations_columns) {
-    $new_columns['cb'] = '<input type="checkbox" />';
-    $new_columns['_firstname'] = __('First Name', '_firstname');
-    $new_columns['_lastname'] = __('Last Name', '_lastname');
-    $new_columns['_phone'] = __('Phone', '_phone');
-    $new_columns['_email'] = __('Email', '_email');
-    $new_columns['_guests'] = __('Guests', '_guests');
-    $new_columns['_date'] = __('Date', '_date');
-    $new_columns['_time'] = __('Time', '_time');
-    return $new_columns;
-}
-add_filter('manage_edit-reservations_columns' , 'add_new_reservations_columns');
+  add_filter('manage_edit-reservations_columns' , 'add_new_reservations_columns');
 
+  /** Meals Functions **/
+  
+  function restauranter_add_meal_meta() {
 
- 
+	  $screens = array( 'meals' );
 
+	  foreach ( $screens as $screen ) {
+
+		  add_meta_box(
+			  'restauranter_meal',
+			  __( 'Meal Details', 'restauranter' ),
+			  'restauranter_meal_details',
+			  $screen, 
+			  'normal', 
+			  'high'
+		  );
+	  }
+  }
+
+  add_action( 'add_meta_boxes', 'restauranter_add_meal_meta' );
+
+  function restauranter_meal_details() {
+	  global $post;
+	
+	  echo '<input type="hidden" name="mealmeta_noncename" id="mealmeta_noncename" value="' . 
+	  wp_create_nonce( plugin_basename(__FILE__) ) . '" />';
+	
+	  $mealname = get_post_meta($post->ID, '_mealname', true);
+	  $mealdescription = get_post_meta($post->ID, '_mealdescription', true);
+	  $mealprice = get_post_meta($post->ID, '_mealprice', true);
+	
+    echo '<p>Meal Name:</p>';
+    echo '<input type="text" name="_mealname" value="' . $mealname  . '" class="widefat" />';
+    echo '<p>Description:</p>';
+    wp_editor( $mealdescription, '_mealdescription', $settings = array() );
+    echo '<p>Price (£):</p>';
+    echo '<input type="text" name="_mealprice" value="' . $mealprice  . '" class="widefat" />';
+    echo '<input type="submit" name="_time" value="" class="widefat submit" />';
+
+  }
+
+  function restauranter_save_meals_meta($post_id, $post) {
+	
+	  if ( !wp_verify_nonce( $_POST['mealmeta_noncename'], plugin_basename(__FILE__) )) {
+	  return $post->ID;
+	  }
+
+	  // Is the user allowed to edit the post or page?
+	  if ( !current_user_can( 'edit_post', $post->ID ))
+		  return $post->ID;
+
+	  $meals_meta['_mealname'] = $_POST['_mealname'];
+	  $meals_meta['_mealdescription'] = $_POST['_mealdescription'];
+	  $meals_meta['_mealprice'] = $_POST['_mealprice'];
+	
+	
+	  foreach ($meals_meta as $key => $value) {
+		  if( $post->post_type == 'revision' ) return;
+		  $value = implode(',', (array)$value);
+		  if(get_post_meta($post->ID, $key, FALSE)) {
+			  update_post_meta($post->ID, $key, $value);
+		  } else {
+			  add_post_meta($post->ID, $key, $value);
+		  }
+		  if(!$value) delete_post_meta($post->ID, $key);
+	  }
+
+  }
+
+  add_action('save_post', 'restauranter_save_meals_meta', 1, 2); // save the custom fields
+
+  function add_new_meals_columns($meals_columns) {
+      $new_columns['cb'] = '<input type="checkbox" />';
+      $new_columns['_mealname'] = __('First Name', '_mealname');
+      $new_columns['_mealdescription'] = __('Description', '_mealdescription');
+      $new_columns['_mealprice'] = __('Price (£)', '_mealprice');
+      return $new_columns;
+  }
+
+  add_filter('manage_edit-meals_columns' , 'add_new_meals_columns');
 
 }
 ?>
