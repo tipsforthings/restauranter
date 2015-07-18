@@ -151,9 +151,41 @@ if (isset($restauranter)) {
         $firstname = get_post_meta($post_id, '_firstname', true);
         echo $firstname;
       break;
+
+      case "_lastname":
+        $lastname = get_post_meta($post_id, '_lastname', true);
+        echo $lastname;
+      break;
+
+      case "_phone":
+        $lastname = get_post_meta($post_id, '_phone', true);
+        echo $lastname;
+      break;
+
+      case "_email":
+        $lastname = get_post_meta($post_id, '_email', true);
+        echo $lastname;
+      break;
+
+      case "_guests":
+        $lastname = get_post_meta($post_id, '_guests', true);
+        echo $lastname;
+      break;
+
+      case "_date":
+        $lastname = get_post_meta($post_id, '_date', true);
+        echo $lastname;
+      break;
+
+      case "_time":
+        $lastname = get_post_meta($post_id, '_time', true);
+        echo $lastname;
+      break;
+
     }
   }
   add_action( "manage_posts_custom_column", "custom_edit_reservations_columns", 10, 2 );
+
   function restauranter_add_meta_box() {
 
 	  $screens = array( 'reservations' );
@@ -241,27 +273,18 @@ if (isset($restauranter)) {
 function add_new_reservations_columns($reservations_columns) {
     $new_columns['cb'] = '<input type="checkbox" />';
     $new_columns['_firstname'] = __('First Name', '_firstname');
+    $new_columns['_lastname'] = __('Last Name', '_lastname');
+    $new_columns['_phone'] = __('Phone', '_phone');
+    $new_columns['_email'] = __('Email', '_email');
+    $new_columns['_guests'] = __('Guests', '_guests');
+    $new_columns['_date'] = __('Date', '_date');
+    $new_columns['_time'] = __('Time', '_time');
     return $new_columns;
 }
 add_filter('manage_edit-reservations_columns' , 'add_new_reservations_columns');
 
 
-add_action('manage_edit-reservations_custom_column', 'manage_reservations_columns', 10, 2);
  
-function manage_reservations_columns($column_name, $id) {
-    global $wpdb;
-    switch ($column_name) {
-    case '_firstname':
-        echo $firstname;
-            break;
- 
-    case '_lastname':
-        echo $lastname; 
-        break;
-    default:
-        break;
-    } // end switch
-}   
 
 
 }
