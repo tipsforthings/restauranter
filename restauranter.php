@@ -68,7 +68,7 @@ if (isset($restauranter)) {
       'menu_icon' => 'dashicons-list-view',
       'show_in_nav_menu' => true,
       'show_in_menu' => true,
-      'taxonomies' => array('meal_category', 'diet_requirement'),
+      'taxonomies' => array('courses', 'diet_requirement'),
     );
     register_post_type( 'meals', $args );
   }
@@ -120,7 +120,7 @@ if (isset($restauranter)) {
       'labels' => $labels,
       'hierarchical' => true,
     );
-    register_taxonomy( 'meal_category', 'meals', $args );
+    register_taxonomy( 'courses', 'meals', $args );
   }
   add_action( 'init', 'my_courses', 0 );
   function diet_requirements() {
@@ -141,7 +141,7 @@ if (isset($restauranter)) {
       'labels' => $labels,
       'hierarchical' => true,
     );
-    register_taxonomy( 'diet_requirement', 'meals', $args );
+    register_taxonomy( 'diets', 'meals', $args );
   }
   add_action( 'init', 'diet_requirements', 0 );
 
@@ -387,6 +387,133 @@ if (isset($restauranter)) {
   }
 
   add_filter('manage_edit-meals_columns' , 'add_new_meals_columns');
+
+  /** Courses Widget **/
+  
+
+
+
+  class CoursesTaxonomyWidget extends WP_Widget
+  {
+      public function __construct()
+      {
+          parent::__construct(
+              'courses_taxonomy_widget',
+              'Restauranter Courses',
+              array('description' => 'Allows you to create a new sidebar widget to display your different course options!')
+          );
+      }
+
+      public function widget($args, $instance)
+      {
+          $taxonomy = 'courses';
+          $term_args=array(
+            'hide_empty' => false
+          );
+          $tax_terms = get_terms($taxonomy,$term_args);
+          echo $before_widget;
+          
+          ?>
+          <ul>
+          <?php
+          foreach ($tax_terms as $tax_term) {
+          echo '<li>' . '<a href="' . esc_attr(get_term_link($tax_term, $taxonomy)) . '" title="' . sprintf( __( "View all posts in %s" ), $tax_term->name ) . '" ' . '>' . $tax_term->name.'</a></li>';
+          }
+          ?>
+          </ul>
+              <?php
+          echo $after_widget;
+      }
+
+      public function form($instance)
+      {
+          $field_data = array(
+              'title' => array(
+                  'id'    => $this->get_field_id('title'),
+                  'name'  => $this->get_field_name('title'),
+                  'value' => (isset($instance['title'])) ? $instance['title'] : __('Courses')
+              )
+          );
+
+      }
+
+      public function update($new_instance, $old_instance)
+      {
+          $instance['title'] = strip_tags($new_instance['title']);
+
+          return $instance;
+      }
+
+  }
+
+  add_action('widgets_init', 'init_courses_taxonomy_widget');
+  function init_courses_taxonomy_widget()
+  {
+      register_widget('CoursesTaxonomyWidget');
+  }
+
+  
+  /** Diet Requirements Widget **/
+
+
+  class DietsTaxonomyWidget extends WP_Widget
+  {
+      public function __construct()
+      {
+          parent::__construct(
+              'diets_taxonomy_widget',
+              'Restauranter Diets',
+              array('description' => 'Allows you to create a new sidebar widget to display your different dietry requirements!')
+          );
+      }
+
+      public function widget($args, $instance)
+      {
+          $taxonomy = 'diets';
+          $term_args=array(
+            'hide_empty' => false
+          );
+          $tax_terms = get_terms($taxonomy,$term_args);
+          echo $before_widget;
+          
+          ?>
+          <ul>
+          <?php
+          foreach ($tax_terms as $tax_term) {
+          echo '<li>' . '<a href="' . esc_attr(get_term_link($tax_term, $taxonomy)) . '" title="' . sprintf( __( "View all posts in %s" ), $tax_term->name ) . '" ' . '>' . $tax_term->name.'</a></li>';
+          }
+          ?>
+          </ul>
+              <?php
+          echo $after_widget;
+      }
+
+      public function form($instance)
+      {
+          $field_data = array(
+              'title' => array(
+                  'id'    => $this->get_field_id('title'),
+                  'name'  => $this->get_field_name('title'),
+                  'value' => (isset($instance['title'])) ? $instance['title'] : __('Diets')
+              )
+          );
+
+      }
+
+      public function update($new_instance, $old_instance)
+      {
+          $instance['title'] = strip_tags($new_instance['title']);
+
+          return $instance;
+      }
+
+  }
+
+  add_action('widgets_init', 'init_diets_taxonomy_widget');
+  function init_diets_taxonomy_widget()
+  {
+      register_widget('DietsTaxonomyWidget');
+  }
 
 }
 ?>
