@@ -60,11 +60,11 @@ if (isset($restauranter)) {
     );
     $args = array(
       'labels'        => $labels,
-      'description'   => 'Holds our products and product specific data',
+      'description'   => 'Holds our meals with descriptions',
       'public'        => true,
       'menu_position' => 5,
       'supports'      => array( 'none' ),
-      'has_archive'   => true,
+      'has_archive'   => false,
       'menu_icon' => 'dashicons-list-view',
       'show_in_nav_menu' => true,
       'show_in_menu' => true,
@@ -147,9 +147,9 @@ if (isset($restauranter)) {
 
   function custom_edit_meals_columns( $mealcolumn, $post_id ) {
     switch ( $mealcolumn ) {
-      case "_mealname":
-        $mealname = get_post_meta($post_id, '_mealname', true);
-        echo $mealname;
+      case "title":
+        $title = get_post_meta($post_id, 'post_title', true);
+        echo $title;
       break;
 
       case "_mealdescription":
@@ -334,12 +334,13 @@ if (isset($restauranter)) {
 	  echo '<input type="hidden" name="mealmeta_noncename" id="mealmeta_noncename" value="' . 
 	  wp_create_nonce( plugin_basename(__FILE__) ) . '" />';
 	
+	  $title = get_post_meta($post->ID, 'title', true);
 	  $mealname = get_post_meta($post->ID, '_mealname', true);
 	  $mealdescription = get_post_meta($post->ID, '_mealdescription', true);
 	  $mealprice = get_post_meta($post->ID, '_mealprice', true);
 	
     echo '<p>Meal Name:</p>';
-    echo '<input type="text" name="_mealname" value="' . $mealname  . '" class="widefat" />';
+    echo '<input type="text" name="post_title" value="' . $title  . '" class="widefat" />';
     echo '<p>Description:</p>';
     wp_editor( $mealdescription, '_mealdescription', $settings = array() );
     echo '<p>Price (£):</p>';
@@ -358,6 +359,7 @@ if (isset($restauranter)) {
 	  if ( !current_user_can( 'edit_post', $post->ID ))
 		  return $post->ID;
 
+	  $meals_meta['title'] = $_POST['post_title'];
 	  $meals_meta['_mealname'] = $_POST['_mealname'];
 	  $meals_meta['_mealdescription'] = $_POST['_mealdescription'];
 	  $meals_meta['_mealprice'] = $_POST['_mealprice'];
@@ -380,7 +382,7 @@ if (isset($restauranter)) {
 
   function add_new_meals_columns($meals_columns) {
       $new_columns['cb'] = '<input type="checkbox" />';
-      $new_columns['_mealname'] = __('First Name', '_mealname');
+      $new_columns['title'] = __('Meal Name', 'post_title');
       $new_columns['_mealdescription'] = __('Description', '_mealdescription');
       $new_columns['_mealprice'] = __('Price (£)', '_mealprice');
       return $new_columns;
